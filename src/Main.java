@@ -64,6 +64,7 @@ public class Main {
                     for (String s : fileNameList) {
                         if (s.length() == 6 && s.substring(0, 2).equals(language)) {
                             flag = true;
+                            break;
                         }
                     }
                 }
