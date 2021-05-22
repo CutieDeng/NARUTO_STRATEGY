@@ -74,9 +74,16 @@ public class Main {
         language = DEFAULT_LANGUAGE;
     }
 
+    private static void initScreenSize(String[] args) {
+        boolean b = Arrays.asList(args).contains("-windowed");
+        int width = 800;
+        int height = 600;
+
+
+    }
+
     public static void main(String[] args) {
         initLanguage(args);
-
     }
 
     /**
