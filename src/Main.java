@@ -1,3 +1,4 @@
+import java.awt.*;
 import java.io.File;
 import java.io.PrintStream;
 import java.time.LocalDateTime;
@@ -10,6 +11,7 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+@SuppressWarnings("unused")
 public class Main {
 
     /**
@@ -74,16 +76,90 @@ public class Main {
         language = DEFAULT_LANGUAGE;
     }
 
+    private static Dimension preferredFrameDimension = null;
+
+    /**
+     * 标记框架是否全屏显示，True 表示全屏显示。
+     */
+    private static boolean frameFullScreen ;
+
+    /**
+     * 初始化游戏窗口大小：<br>
+     * -windowed 使游戏窗口化 <br>
+     * -w=800 使游戏窗口的宽度为 800 <br>
+     * -h=600 使游戏窗口的宽度为 600
+     * @param args 游戏传入参数
+     */
     private static void initScreenSize(String[] args) {
-        boolean b = Arrays.asList(args).contains("-windowed");
-        int width = 800;
-        int height = 600;
-
-
+        frameFullScreen = ! (Arrays.asList(args).contains("-windowed")
+                || Arrays.asList(args).contains("-windowd"));
+        if (frameFullScreen) {
+            return;
+        }
+        String widthRegex = "\\A-w(idth)?=(?<WIDTH>\\d+)";
+        Pattern widthSearchPattern = Pattern.compile(widthRegex);
+        String heightRegex = "\\A-h(eight)?=(?<HEIGHT>\\d+)";
+        Pattern heightSearchPattern = Pattern.compile(heightRegex);
+        boolean widthSearch = false;
+        boolean heightSearch = false;
+        Dimension windowScreen = Toolkit.getDefaultToolkit().getScreenSize();
+        int width = Math.min(windowScreen.width, 800);
+        int height = Math.min(windowScreen.height, 600);
+        int nowValue;
+        Matcher widthMatch ;
+        Matcher heightMatch ;
+        for (String arg : args) {
+            widthMatch = widthSearchPattern.matcher(arg);
+            if (widthMatch.find()) {
+                try {
+                    nowValue = Integer.parseInt(widthMatch.group("WIDTH"));
+                }
+                catch (NumberFormatException n) {
+                    log(n.getMessage());
+                    continue;
+                }
+                if (nowValue > windowScreen.width) {
+                    log("Width arguments set as " + nowValue + ", but the window's width " +
+                            "is only " + windowScreen.width + ".");
+                    continue;
+                }
+                if (widthSearch) {
+                    log("Conflicts when more than one parameters for width settings." +
+                            " The original value is " + width + ", the surplus value is " + nowValue + ".");
+                    continue;
+                }
+                widthSearch = true;
+                width = nowValue;
+            }
+            heightMatch = heightSearchPattern.matcher(arg);
+            if (heightMatch.find()) {
+                try {
+                    nowValue = Integer.parseInt(heightMatch.group("HEIGHT"));
+                }
+                catch (NumberFormatException n) {
+                    log(n.getMessage());
+                    continue;
+                }
+                if (nowValue > windowScreen.height) {
+                    log("Height arguments set as " + nowValue + ", but the window's height " +
+                            "is only " + windowScreen.height + ".");
+                    continue;
+                }
+                if (heightSearch) {
+                    log("Conflicts when more than one parameters for height settings." +
+                            " The original value is " + height + ", the surplus value is " + nowValue + ".");
+                    continue;
+                }
+                heightSearch = true;
+                height = nowValue;
+            }
+        }
+        preferredFrameDimension = new Dimension(width, height);
     }
 
     public static void main(String[] args) {
         initLanguage(args);
+        initScreenSize(args);
     }
 
     /**
